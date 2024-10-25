@@ -2,6 +2,15 @@
 <template>
   <div class="mainPage circleBar">
     <div class="circleBar TableArea">
+      <el-select v-model="selectModel" placeholder="全部" size="large" style="width: 240px">
+        <el-option
+          v-for="item in selectArray"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+          @click="SwitchPage('1')"
+        />
+      </el-select>
       <el-table
         ref="thisRefTable"
         :data="CurrentReviewsList"
@@ -11,15 +20,14 @@
       >
         <el-table-column property="id" label="审核记录" width="100" />
         <el-table-column property="exercise" label="题目id" width="100" />
-        <!-- !!!!!!!獲得title額外花費請求,先刪了 -->
-        <!-- <el-table-column property="title" label="题目内容" width="600">
-          <template #default="scope">
-            <span>{{ truncate(scope.row.title, 70) }}</span>
-          </template>
-        </el-table-column> -->
         <el-table-column property="result" label="审核结果">
+          <!-- <template #default="scope">
+            {{ truncate(scope.row.result, 10) }}
+          </template> -->
           <template #default="scope">
-            {{ truncate(scope.row.result, -1) }}
+            <span v-if="scope.row.result === 'A'" style="color: green">审核通过</span>
+            <span v-else-if="scope.row.result === 'R'" style="color: red">审核拒绝</span>
+            <span v-else style="color: grey">审核中</span>
           </template>
         </el-table-column>
         <el-table-column property="created_date" label="创建时间">
@@ -31,6 +39,20 @@
           <template #default="scope" :key="CheckButtonRefreshKey">
             <el-button class="" type="default" @click="JumpToUploadPage(scope.row?.id)">
               检查
+            </el-button>
+            <el-button
+              v-if="scope.row?.is_active == true"
+              type="danger"
+              @click="deleteExercises(scope.row?.id)"
+            >
+              删除
+            </el-button>
+            <el-button
+              v-if="scope.row?.is_active == false"
+              type="success"
+              @click="patchExercises(scope.row?.id)"
+            >
+              恢复
             </el-button>
           </template>
         </el-table-column>
@@ -56,7 +78,13 @@ import { ref, onMounted } from 'vue'
 import router from '@/router'
 import { HandleRefreshToken, refreshToken, verifyToken } from '@/api/users'
 import { getExercises, getExercisesByPage, getExercisesByID } from '@/api/exercises'
-import { getReviews, getReviewsByPage } from '@/api/reviews'
+import {
+  getReviews,
+  getReviewsByPage,
+  getReviewsByAny,
+  deleteReviewsByID,
+  patchReviewsByID
+} from '@/api/reviews'
 import { ElTable, ElTableColumn, ElButton } from 'element-plus'
 import splitPage, { ArrayifyPageData } from '@/api/splitPage'
 
@@ -67,6 +95,7 @@ interface Review {
   comments: string | null
   created_date: string
   title: string
+  is_active: boolean
   [key: string]: any // 索引签名，允许任何额外的属性
 }
 
@@ -84,26 +113,59 @@ onMounted(async () => {
   })
 })
 
-const SwitchPage = async (page: string) => {
-  for (const [index, e] of ArrayifyPageData(await getReviewsByPage(page)).entries()) {
-    CurrentReviewsList.value[index] = e
-    // CurrentReviewsList.value[index].title = await getTitle(e.exercise)
-  }
-  console.log('CurrentReviewsList', CurrentReviewsList.value)
-}
-//      <!-- !!!!!!!獲得title額外花費請求,先隱藏 -->
-// const getTitle = async (exerciseId: number) => {
-//   return ((await getExercisesByID(exerciseId)).content as unknown as any).title
+// const SwitchPage = async (page: string) => {
+//   CurrentReviewsList.value=[]
+
+//   for (const [index, e] of ArrayifyPageData(await getReviewsByPage(page)).entries()) {
+//     CurrentReviewsList.value[index] = e
+//     // CurrentReviewsList.value[index].title = await getTitle(e.exercise)
+//   }
+//   console.log('CurrentReviewsList', CurrentReviewsList.value)
 // }
+// el-分頁欄 相關
+let currentPage = ref(1)
+const pageSize = ref(10)
+const MaxTitle = ref(10)
+
+const handleCurrentChange = async (val: number) => {
+  await SwitchPage(val + '')
+  console.log(`current page: ${val}`)
+}
+
+const SwitchPage = async (page: string) => {
+  CurrentReviewsList.value = []
+  switch (selectModel.value) {
+    case 'Normal':
+      const tmp = await getReviewsByPage(page)
+      for (const [index, e] of ArrayifyPageData(tmp).entries()) {
+        CurrentReviewsList.value[index] = e
+      }
+      MaxTitle.value = (tmp.content as unknown as any).count // 更新最大項目條數
+      break
+    default:
+      const tmp2 = await getReviewsByAny(page, selectModel.value)
+      for (const [index, e] of ArrayifyPageData(tmp2).entries()) {
+        CurrentReviewsList.value[index] = e
+      }
+      MaxTitle.value = (tmp2.content as unknown as any).count
+        ? (tmp2.content as unknown as any).count
+        : 0 // 更新最大項目條數
+      break
+  }
+  // PageBarRefreshKey.value += 1
+  console.log('CurrentExercisesList', CurrentReviewsList.value)
+}
 
 // 過濾器,超過特定字數自動截斷加'...'
 const truncate = (value, length: number) => {
-  if (length === -1) {
-    return '沒有結果'
+  switch (value) {
+    case 'A':
+      return '审核通过'
+    case 'R':
+      return '审核拒绝'
+    default:
+      return '审核中'
   }
-  if (!value) return ''
-  if (value.length <= length) return value
-  return value.substring(0, length) + '...'
 }
 
 // 轉時間
@@ -144,14 +206,33 @@ const JumpToUploadPage = async (reviewID: string | number) => {
   }
 }
 
-// el-分頁欄 相關
-let currentPage = ref(1)
-const pageSize = ref(10)
-const MaxTitle = ref(10)
+// select相關
+const selectModel = ref<string>('Normal')
 
-const handleCurrentChange = async (val: number) => {
-  await SwitchPage(val + '')
-  console.log(`current page: ${val}`)
+const selectArray = [
+  {
+    value: 'Normal',
+    label: '全部'
+  },
+  {
+    value: 'is_active=false',
+    label: '已删除'
+  },
+  {
+    value: 'is_active=true',
+    label: '未删除'
+  }
+]
+
+// 刪除操作，检查
+const deleteExercises = async (id: number) => {
+  deleteReviewsByID(id + '')
+  CurrentReviewsList.value[CurrentReviewsList.value.findIndex((e) => e.id === id)].is_active = false
+}
+// 修改操作，检查
+const patchExercises = async (id: number) => {
+  patchReviewsByID(id + '', { is_active: true })
+  CurrentReviewsList.value[CurrentReviewsList.value.findIndex((e) => e.id === id)].is_active = true
 }
 </script>
 

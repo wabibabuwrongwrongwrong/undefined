@@ -10,6 +10,7 @@
             id="file"
             @change="handleFileChange"
             style="margin-left: 8px"
+            ref="fileInput"
           />
         </div>
 
@@ -175,9 +176,13 @@ const popoverVisible = ref(false) // 可视化泡泡框
 const thisRefTable = ref<InstanceType<typeof ElTable>>()
 
 const isLoading = ref(false)
+const fileInput = ref() //指代file的DOM节点，唤起cilck事件的辅助变量
+
 const toggleSelectionUpload = async (rows?: CSVDATA[]) => {
   isLoading.value = true
-  if (csvData === null || csvData === undefined) {
+
+  if (csvData === null || csvData === undefined || csvData.value.length === 0) {
+    fileInput.value.click()
     isLoading.value = false
     return
   }
@@ -210,6 +215,7 @@ onMounted(async () => {
 //
 const csvData = ref<CSVDATA[]>([]) //存放所有读取的数据
 const handleFileChange = async (event) => {
+  console.log(event.value, 'tmp')
   document.getElementById('alertbox')!.style.visibility = 'hidden'
   const file = event.target.files[0]
   if (file.size / 1024 > MaxSize.value) {

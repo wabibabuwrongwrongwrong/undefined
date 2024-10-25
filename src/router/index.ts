@@ -14,6 +14,12 @@ const router = createRouter({
         { path: 'about', name: 'about', component: () => import('@/views/IndexView.vue') },
         { path: '/exercises', name: 'exercises', component: () => import('@/views/IndexView.vue') },
         { path: '/upload', name: 'upload', component: () => import('@/views/uploadCSV.vue') },
+        {
+          path: '/exerciseList',
+          name: 'exerciseList',
+          component: () => import('@/views/exercisesRevise/exercisesRevise.vue')
+        },
+
         // { path: 'table', name: 'table', component: () => import('@/views/menus/TablePage.vue') },
         {
           path: '/:xxx(.*)*',
@@ -32,6 +38,11 @@ const router = createRouter({
       path: '/review',
       name: 'review',
       component: () => import('@/views/questionList/QuestionDetail.vue')
+    },
+    {
+      path: '/Revise',
+      name: 'Revise',
+      component: () => import('@/views/exercisesRevise/ExercisesDetail.vue')
     }
     // {
     //   path: '/menus',

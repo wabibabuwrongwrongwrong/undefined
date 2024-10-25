@@ -62,16 +62,16 @@ request.interceptors.response.use(
         .catch((error) => {
           console.error('刷新 token 失败', error)
           // 如果刷新 token 失败，跳转到登录页面
-          // alert('頁面已過期')
+          alert('頁面已過期')
           router.push({ name: 'login' })
-          window.open(location.href, '_self') // 页面有时不会刷新
+          // window.open(location.href, '_self') // 页面有时不会刷新;該語句存在無限循環風險
         })
     } else if (error.response?.status === 400) {
       // !!!!!!!!!!絕對 不要 在status ===400下再次使用request請求
-      // console.log('status 400,Error: ', error.response)
+      console.log('status 400,Error: ', error.response)
     }
 
-    // console.log('拦截器拒绝,返回包error: ', error.response, '  tmp: ', tmp)
+    console.log('拦截器拒绝,返回包error: ', error.response, '  tmp: ', tmp)
     return tmp ? tmp : Promise.reject(error)
   }
 )

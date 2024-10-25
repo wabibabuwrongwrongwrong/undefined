@@ -32,5 +32,8 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  build: {
+    sourcemap: true // 或者使用 'inline' 等其他选项启用sourcemap
   }
 })

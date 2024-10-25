@@ -63,6 +63,12 @@ import { isCollapse } from '@/components/layout/isCollapse'
             <span>审核列表</span>
           </el-menu-item>
 
+          <el-menu-item index="/exerciseList">
+            <el-icon>
+              <IEpSetting />
+            </el-icon>
+            <span>题目列表</span>
+          </el-menu-item>
           <el-menu-item index="/upload">
             <el-icon>
               <IEpSetting />

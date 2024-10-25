@@ -51,6 +51,16 @@ export const getExercisesByID = (id: string): Promise<Response> => {
     })
 }
 
+export const getExercisesByAny = (page: string, searchMode: string): Promise<Response> => {
+  return request
+    .get<Response>(`/api/v1/exercises/?page=${page}&${searchMode}`)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.log(`获取Exercise失败,字段查询${searchMode}`, error)
+      throw error
+    })
+}
+
 export const getExercisesByPage = (page: string): Promise<Response> => {
   return request
     .get<Response>(`/api/v1/exercises/?page=${page}`)
@@ -95,6 +105,25 @@ export const patchExercises = (exerciseinfo: PatchExerciseInfo, id: string): Pro
     })
 }
 
+export const patchExercisesByID = (id: string, exerciseinfo: any): Promise<Response> => {
+  return request
+    .patch<Response>(`/api/v1/exercises/${id}`, exerciseinfo)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.log(`提交Exercise${id}失败`, error)
+      throw error
+    })
+}
+
+export const deleteExercisesByID = (id: string): Promise<Response> => {
+  return request
+    .delete<Response>(`/api/v1/exercises/${id}`)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.log('删除Exercise失败', error)
+      throw error
+    })
+}
 export const deleteExercises = (id: string): Promise<Response> => {
   return request
     .delete<Response>(`/api/v1/exercises/${id}`)

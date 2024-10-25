@@ -10,6 +10,7 @@ type Response = {
 type PatchReviewInfo = {
   result: string
   comments: string
+  is_active?: boolean
 }
 
 export const getReviews = (): Promise<Response> => {
@@ -44,10 +45,7 @@ export const postReviewsByID = (id: string, exerciseByIDInfo: any): Promise<Resp
 }
 
 // 相当于update
-export const patchReviewsByID = (
-  id: string,
-  ReviewByIDInfo: PatchReviewInfo
-): Promise<Response> => {
+export const patchReviewsByID = (id: string, ReviewByIDInfo: any): Promise<Response> => {
   return request
     .patch<Response>(`/api/v1/reviews/${id}`, ReviewByIDInfo)
     .then((response) => response.data)
@@ -63,6 +61,25 @@ export const getReviewsByPage = (page: string): Promise<Response> => {
     .then((response) => response.data)
     .catch((error) => {
       console.log(`获取ReviewPage${page}结果失败`, error)
+      throw error
+    })
+}
+export const getReviewsByAny = (page: string, searchMode: string): Promise<Response> => {
+  return request
+    .get<Response>(`/api/v1/reviews/?page=${page}&${searchMode}`)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.log(`获取review失败,字段查询${searchMode}`, error)
+      throw error
+    })
+}
+
+export const deleteReviewsByID = (id: string): Promise<Response> => {
+  return request
+    .delete<Response>(`/api/v1/reviews/${id}`)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.log('删除reviews失败', error)
       throw error
     })
 }

@@ -2,29 +2,12 @@
   <div class="canvas clearfix" :key="TableRefreshKey" v-loading="isLoading">
     <div class="LeftPage leftfix">
       <!-- 左边框-->
-      <div class="topicPart">
-        <span style="font-size: 32px; font-weight: bold">知识点：</span>
-        <!-- <br /> -->
-        <!-- <div style="margin-left: 20px">
-          <span>{{ topictoString }}</span>
-        </div> -->
-        <!-- <span style="margin-right: 40px">&nbsp;</span> -->
-        <el-select
-          v-model="topicRef"
-          :placeholder="topictoString"
-          size="large"
-          style="width: 260px; margin-right: 50px"
-          class="rightfix"
-        >
-          <el-option
-            v-for="item in topicsList"
-            :label="item.title"
-            :value="item.id"
-            :key="item.id"
-            style="font-size: larger"
-          />
-        </el-select>
+      <div class="imagePart">
+        <!-- <div class="Blackline"></div>
+        <div class="Blackline"></div> -->
+        <img :src="imagePathRef" alt="exercise image" :width="700" class="imageQuestion" />
       </div>
+
       <div class="problem">
         <h1>题目：</h1>
         <br />
@@ -39,7 +22,7 @@
           <LatexRender :expr="exerciseInfo?.explanation"></LatexRender>
         </div>
       </div>
-      <div class="answer circleBar">
+      <div class="answer">
         <h1>答案：</h1>
         <br />
         <div style="margin-left: 20px">
@@ -48,12 +31,6 @@
       </div>
     </div>
     <div class="RightPage leftfix">
-      <div class="imagePart">
-        <div class="Blackline"></div>
-        <div class="Blackline"></div>
-        <img :src="imagePathRef" alt="exercise image" :width="700" class="imageQuestion" />
-      </div>
-
       <!-- <div v-if="exerciseInfo?.title" class="commentPart circleBar">
         <span>题目修正区</span>
         <el-input
@@ -79,12 +56,35 @@
           type="textarea"
         />
       </div> -->
+      <div class="topicPart">
+        <span style="font-size: 26px; font-weight: bold">&nbsp;&nbsp;&nbsp;知识点：</span>
+        <!-- <br /> -->
+        <!-- <div style="margin-left: 20px">
+          <span>{{ topictoString }}</span>
+        </div> -->
+        <!-- <span style="margin-right: 40px">&nbsp;</span> -->
+        <el-select
+          v-model="topicRef"
+          :placeholder="topictoString"
+          size="large"
+          style="width: 260px; margin-right: 50px"
+          class="rightfix"
+        >
+          <el-option
+            v-for="item in topicsList"
+            :label="item.title"
+            :value="item.id"
+            :key="item.id"
+            style="font-size: larger"
+          />
+        </el-select>
+      </div>
       <div class="commentPart circleBar">
         <div><h2>题目修正区:</h2></div>
         <el-input
           v-model="commentRef"
           maxlength="600"
-          style="font-size: 20px; width: 600px; margin-top: 3px"
+          style="font-size: 20px; width: 530px; margin-top: 3px"
           :autosize="{ minRows: 4, maxRows: 6 }"
           :placeholder="titleRef"
           show-word-limit
@@ -97,7 +97,7 @@
         <el-input
           v-model="ExplanationRef"
           maxlength="600"
-          style="font-size: 20px; width: 600px; margin-top: 3px"
+          style="font-size: 20px; width: 530px; margin-top: 3px"
           :autosize="{ minRows: 4, maxRows: 6 }"
           :placeholder="DefaultExplanation"
           show-word-limit
@@ -110,7 +110,7 @@
         <el-input
           v-model="AnswerRef"
           maxlength="600"
-          style="font-size: 20px; width: 600px; margin-top: 3px"
+          style="font-size: 20px; width: 530px; margin-top: 3px"
           :autosize="{ minRows: 2, maxRows: 3 }"
           :placeholder="DefaultAnswer"
           show-word-limit
@@ -276,7 +276,7 @@ const checkTopicsList = async (page?: string) => {
   background-color: #f6f8fa;
 }
 .LeftPage {
-  width: 45%;
+  width: 50%;
 }
 .Blackline {
   border: 2px solid #f6f8fa;
@@ -291,7 +291,7 @@ div .Blackline:nth-child(2) {
   border-top-left-radius: 40px;
   border-top-right-radius: 40px;
   padding: 30px 30px;
-  padding-bottom: 30px;
+  padding-bottom: 20px;
   border-bottom: solid 2px #e5e7eb;
 }
 .imageQuestion {
@@ -302,17 +302,19 @@ div .Blackline:nth-child(2) {
 .topicPart {
   background-color: #ffffff;
   border: 2px solid #e5e7eb;
-  border-bottom: 0;
-  padding: 50px 30px;
-  padding-top: 40px;
+  /* 
+  border-bottom: 0; */
+  padding: 15px 30px;
+  /* padding-top: 10px; */
   border-top-left-radius: 40px;
   border-top-right-radius: 40px;
 }
 .problem {
   background-color: #fcfcfd;
   border: 2px solid #e5e7eb;
-  padding: 50px 30px;
-  padding-top: 40px;
+  padding: 20px 30px;
+  padding-top: 30px;
+  border-top: 0px;
   /* border-top-left-radius: 40px;
   border-top-right-radius: 40px; */
 }
@@ -321,13 +323,13 @@ div .Blackline:nth-child(2) {
   border: 2px solid #e5e7eb;
   border-top: 0px;
 
-  padding: 30px 30px;
-  padding-bottom: 60px;
+  padding: 20px 30px;
+  /* padding-bottom: 60px; */
 }
 
 .RightPage {
   margin-left: 40px;
-  width: 50%;
+  width: 45%;
   font-size: 1.21em;
 }
 
@@ -341,9 +343,13 @@ div .Blackline:nth-child(2) {
 
 .answer {
   padding-left: 50px;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
+  border-bottom-left-radius: 40px;
+  border-bottom-right-radius: 40px;
+  border: 2px solid #e5e7eb;
+  padding-top: 30px;
+  padding-bottom: 20px;
   border-top: 0px;
+
   background-color: #fcfcfd;
 }
 .state {

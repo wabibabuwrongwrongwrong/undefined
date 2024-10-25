@@ -1,7 +1,16 @@
 <!-- src/components/TablePage.vue -->
 <template>
   <div class="mainPage">
-    <div class="circleBar TableArea">
+    <div class="circleBar TableArea clearfix">
+      <el-select v-model="selectModel" placeholder="全部" size="large" style="width: 240px">
+        <el-option
+          v-for="item in selectArray"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+          @click="SwitchExercisePage('1')"
+        />
+      </el-select>
       <el-popover
         :visible="popoverVisible"
         placement="bottom-end"
@@ -13,7 +22,7 @@
       >
         <template #reference>
           <el-button class="rightfix" @click="popoverVisible = !popoverVisible">
-            查看知识点
+            {{ topicChoosing }}
           </el-button>
         </template>
         <div class="popoBox clearfix">
@@ -69,6 +78,20 @@
             <el-button class="" type="default" @click="JumpToUploadPage(scope.row?.id)">
               修改
             </el-button>
+            <el-button
+              v-if="scope.row?.is_active == true"
+              type="danger"
+              @click="deleteExercises(scope.row?.id)"
+            >
+              删除
+            </el-button>
+            <el-button
+              v-if="scope.row?.is_active == false"
+              type="success"
+              @click="patchExercises(scope.row?.id)"
+            >
+              恢复
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -96,7 +119,9 @@ import {
   getExercises,
   getExercisesByPage,
   getExercisesByID,
-  getExercisesByAny
+  getExercisesByAny,
+  deleteExercisesByID,
+  patchExercisesByID
 } from '@/api/exercises'
 import { ElTable, ElTableColumn, ElButton, ElSelect } from 'element-plus'
 import splitPage, { ArrayifyPageData } from '@/api/splitPage'
@@ -109,6 +134,7 @@ interface Review {
   comments: string | null
   created_date: string
   title: string
+  is_active: boolean
   [key: string]: any // 索引签名，允许任何额外的属性
 }
 
@@ -182,11 +208,17 @@ const GetTopicFromList = (i: number) => {
 
 // ?topic=id
 const popoverVisible = ref(false)
+const topicChoosing = ref<string>('全部知识点')
 const selectDefaultTopic = async (id?: number) => {
   //
   // 更新exercise，
   //
   researchMode.value = id ? 'topic=' + id : 'Normal'
+  if (researchMode.value === 'Normal') {
+    topicChoosing.value = '全部知识点'
+  } else {
+    topicChoosing.value = GetTopicFromList(id as number)
+  }
   currentPage.value = 1 //强制切exercise到page1
   await SwitchExercisePage()
   popoverVisible.value = false
@@ -234,14 +266,16 @@ const SwitchExercisePage = async (page?: string) => {
   CurrentExercisesList.value = []
   switch (researchMode.value) {
     case 'Normal':
-      const tmp = await getExercisesByPage(page)
+      // const tmp = await getExercisesByPage(page)
+      const tmp = await getExercisesByAny(page, selectModel.value)
+
       for (const [index, e] of ArrayifyPageData(tmp).entries()) {
         CurrentExercisesList.value[index] = e
       }
       ExerciseMaxTitle.value = (tmp.content as unknown as any).count // 更新最大項目條數
       break
     default:
-      const tmp2 = await getExercisesByAny(page, researchMode.value)
+      const tmp2 = await getExercisesByAny(page, researchMode.value + '&' + selectModel.value)
       for (const [index, e] of ArrayifyPageData(tmp2).entries()) {
         CurrentExercisesList.value[index] = e
       }
@@ -265,6 +299,8 @@ const truncate = (value: string, length: number) => {
   return value.substring(0, length) + '...'
 }
 
+// ----操作功能-----
+//
 // 檢查頁面跳轉
 const JumpToUploadPage = async (ExercisesID: string | number) => {
   const { href } = router.resolve({
@@ -283,6 +319,37 @@ const JumpToUploadPage = async (ExercisesID: string | number) => {
     router.push('/login')
   }
 }
+
+// 刪除操作，检查
+const deleteExercises = async (id: number) => {
+  deleteExercisesByID(id + '')
+  CurrentExercisesList.value[CurrentExercisesList.value.findIndex((e) => e.id === id)].is_active =
+    false
+}
+// 修改操作，检查
+const patchExercises = async (id: number) => {
+  patchExercisesByID(id + '', { is_active: true })
+  CurrentExercisesList.value[CurrentExercisesList.value.findIndex((e) => e.id === id)].is_active =
+    true
+}
+
+// select相關
+const selectModel = ref<string>('')
+
+const selectArray = [
+  {
+    value: '',
+    label: '全部'
+  },
+  {
+    value: 'is_active=false',
+    label: '已删除'
+  },
+  {
+    value: 'is_active=true',
+    label: '未删除'
+  }
+]
 </script>
 
 <style scoped lang="scss">
